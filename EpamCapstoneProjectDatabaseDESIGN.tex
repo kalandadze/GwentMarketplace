@@ -1,0 +1,65 @@
+\documentclass[13pt]{article}
+\usepackage{enumitem}
+\usepackage{graphicx}
+
+\title{Gwent Card Marketplace Database Layer Design}
+\author{luka kalandadze}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Entities in the System}
+The Gwent Marketplace system consists of the following entities:
+
+\begin{itemize}
+    \item \textbf{User (Key Entity)}: Represents a registered user in the system. \\
+    Attributes: userId (PK), username, email, password, birthdate, balance.
+
+    \item \textbf{CardTemplate (Key Entity)}: Describes the blueprint of a card. \\
+    Attributes: templateId (PK), name, set, category, ability, flavor, rarity, faction, type, power, provision, imageUrl, factionUrl.
+
+    \item \textbf{Card (Weak Entity)}: Represents a specific instance of a card linked to a CardTemplate. \\
+    Attributes: cardId (PK), templateId (FK), ownerId (FK, nullable), number.
+
+    \item \textbf{Transaction (associative Entity)}: Records the purchase and sale of cards between users. \\
+    Attributes: transactionId (PK), buyerId (FK), sellerId (FK), cardId (FK), price, date.
+
+    \item \textbf{Listing (Weak Entity)}: Represents a card listing created by a user to sell cards. \\
+    Attributes: listingId (PK), userId (FK), cardId (FK), price, status.
+\end{itemize}
+
+\section{Relationships Between Entities}
+\begin{itemize}
+    \item A \textbf{User} can own many \textbf{Cards} directly. (1:N)
+    \item A \textbf{User} can create many \textbf{Listings}. (1:N)
+    \item A \textbf{Listing} is for exactly one \textbf{Card}. (1:1)
+    \item A \textbf{Transaction} links two \textbf{Users} (buyer and seller) with a single \textbf{Card}. (N:1)
+    \item A \textbf{Card} references exactly one \textbf{CardTemplate}. (N:1)
+    \item Each \textbf{CardTemplate} can be associated with many \textbf{Cards}, \textbf{Listings}, and \textbf{Transactions}. (1:N)
+\end{itemize}
+
+\section{Cardinality and Ordinality}
+\begin{itemize}
+    \item One \textbf{User} can own zero or many \textbf{Cards} (0..N).
+    \item One \textbf{Card} belongs to zero or one \textbf{User} (0..1).
+    \item One \textbf{User} can create zero or many \textbf{Listings} (0..N).
+    \item One \textbf{Listing} must be linked to exactly one \textbf{Card} (1..1).
+    \item One \textbf{Transaction} involves exactly one buyer and one seller (1..1), and one card (1..1).
+\end{itemize}
+
+\section{Attributes of Entities}
+\begin{itemize}
+    \item \textbf{Keys}: userId, templateId, cardId, transactionId, listingId.
+    \item \textbf{Foreign Keys}: templateId in Card, buyerId and sellerId in Transaction, userId in Listing, ownerId in Card.
+    \item \textbf{Multivalued Attributes}: A user can have multiple cards in their collection.
+\end{itemize}
+
+\section{ER Diagram}
+The ER diagram is designed digitally with smartDraw.
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{ERDiagram.png}
+\end{center}
+
+\end{document}
