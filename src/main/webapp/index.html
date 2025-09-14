@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gwent Marketplace</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Header -->
+<header id="header" class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1 class="logo">Gwent Marketplace</h1>
+        </div>
+
+        <div id="search-section" class="search-section">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="search-input" placeholder="Search cards..." class="search-input">
+            </div>
+            <button id="filter-btn" class="btn btn-outline">
+                <i class="fas fa-filter"></i>
+                <span class="hidden-mobile">Filters</span>
+            </button>
+        </div>
+
+        <div class="header-right">
+            <div id="coin-balance" class="coin-balance hidden">
+                <i class="fas fa-coins"></i>
+                <span id="balance-amount">0</span>
+            </div>
+
+            <button id="packs-btn" class="btn btn-outline">
+                <i class="fas fa-box"></i>
+                <span class="hidden-mobile">Packs</span>
+            </button>
+
+            <div id="auth-section">
+                <!-- Logged out state -->
+                <div id="login-buttons">
+                    <button id="login-btn" class="btn btn-primary">Log In</button>
+                    <button id="register-btn" class="btn btn-outline">Register</button>
+                </div>
+
+                <!-- Logged in state -->
+                <div id="user-menu" class="user-menu hidden">
+                    <button id="user-dropdown-btn" class="user-dropdown-btn">
+                        <i class="fas fa-user"></i>
+                        <span id="username"></span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div id="user-dropdown" class="user-dropdown hidden">
+                        <button id="collection-btn" class="dropdown-item">
+                            <i class="fas fa-book"></i>
+                            My Collection
+                        </button>
+                        <button id="logout-btn" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Log out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Filter Panel -->
+<div id="filter-panel" class="filter-panel hidden">
+    <div class="filter-overlay"></div>
+    <div class="filter-content">
+        <div class="filter-header">
+            <h3>Filters</h3>
+            <button id="close-filter" class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="filter-body">
+            <div class="filter-group">
+                <label>Faction</label>
+                <select id="faction-filter">
+                    <option value="All">All Factions</option>
+                    <option value="Northern Realms">Northern Realms</option>
+                    <option value="Nilfgaard">Nilfgaard</option>
+                    <option value="Monsters">Monsters</option>
+                    <option value="Scoia'tael">Scoia'tael</option>
+                    <option value="Skellige">Skellige</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Rarity</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" value="Common" class="rarity-checkbox">
+                        Common
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" value="Rare" class="rarity-checkbox">
+                        Rare
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" value="Epic" class="rarity-checkbox">
+                        Epic
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" value="Legendary" class="rarity-checkbox">
+                        Legendary
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label>Power Range</label>
+                <div class="range-container">
+                    <div class="dual-range-slider">
+                        <input type="range" id="power-min" min="0" max="15" value="0" class="range-slider range-min">
+                        <input type="range" id="power-max" min="0" max="15" value="15" class="range-slider range-max">
+                    </div>
+                    <div class="range-labels">
+                        <span id="power-min-value">0</span>
+                        <span>-</span>
+                        <span id="power-max-value">15</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label>Type</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" value="Unit" class="type-checkbox">
+                        Unit
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" value="Special" class="type-checkbox">
+                        Special
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" value="Artifact" class="type-checkbox">
+                        Artifact
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" value="Ability" class="type-checkbox">
+                        Ability
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-footer">
+            <button id="clear-filters" class="btn btn-outline">Clear All</button>
+            <button id="apply-filters" class="btn btn-primary">Apply Filters</button>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Container -->
+<main id="main-content" class="main-content">
+    <!-- Templates View -->
+    <div id="templates-view" class="view">
+        <div class="page-header">
+            <div class="pagination">
+                <span id="templates-count">Loading...</span>
+                <div class="pagination-controls">
+                    <button id="prev-page" class="btn btn-outline" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </button>
+                    <span id="page-info">Page 1</span>
+                    <button id="next-page" class="btn btn-outline">
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="templates-grid" class="templates-grid">
+                <!-- Template cards will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Listings View -->
+    <div id="listings-view" class="view hidden">
+        <div class="page-header">
+            <button id="back-to-templates" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i>
+                Back to Cards
+            </button>
+        </div>
+        <div id="selected-card-details" class="card-details">
+            <!-- Selected card details will be inserted here -->
+        </div>
+        <div class="page-header">
+            <h2 id="listings-title">Card Listings</h2>
+            <p id="listings-count">Loading listings...</p>
+        </div>
+        <div id="listings-list" class="listings-list">
+            <!-- Listings will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Packs View -->
+    <div id="packs-view" class="view hidden">
+        <div class="page-header">
+            <button id="back-to-marketplace" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i>
+                Back to Marketplace
+            </button>
+            <h2>Card Packs</h2>
+            <p>Purchase packs to discover new cards for your collection!</p>
+        </div>
+        <div id="packs-grid" class="cards-grid">
+            <!-- Pack cards will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Collection View -->
+    <div id="collection-view" class="view hidden">
+        <div class="page-header">
+            <button id="back-from-collection" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i>
+                Back to Marketplace
+            </button>
+            <h2>My Collection</h2>
+            <p id="collection-count">Loading collection...</p>
+        </div>
+        <div id="collection-grid" class="cards-grid">
+            <!-- Collection cards will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Pack Opening View -->
+    <div id="pack-opening-view" class="view hidden">
+        <div class="page-header">
+            <h2>Pack Opening Results</h2>
+        </div>
+        <div id="pack-results" class="pack-results-container">
+            <div id="pack-results-grid" class="pack-results-grid">
+                <!-- Pack results will be inserted here -->
+            </div>
+            <div class="pack-results-actions">
+                <button class="btn btn-primary" onclick="app.showView('packs')">Add All to Collection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sell Card Modal -->
+    <div id="sell-card-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="app.hideSellCardModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sell Card</h3>
+                <button class="modal-close" onclick="app.hideSellCardModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="sell-card-info">
+                    <p>Card: <strong id="sell-card-name"></strong></p>
+                    <p>Number: <strong id="sell-card-number"></strong></p>
+                </div>
+                <div class="form-group">
+                    <label for="sell-price-input">Price (coins)</label>
+                    <input type="number" id="sell-price-input" placeholder="Enter price" min="1" step="1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="app.hideSellCardModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="app.sellCard()">List for Sale</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login View -->
+    <div id="login-view" class="view hidden">
+        <div class="auth-container">
+            <button id="back-from-login" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Back to Marketplace
+            </button>
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to your Gwent Marketplace account</p>
+                </div>
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="Enter your email" required>
+                        <div class="error-message" id="login-email-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="login-password" placeholder="Enter your password" required>
+                            <button type="button" id="toggle-login-password" class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="error-message" id="login-password-error"></div>
+                    </div>
+                    <button type="submit" id="login-submit" class="btn btn-primary btn-full">
+                        Sign In
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    <p>Don't have an account?
+                        <button id="switch-to-register" class="link-btn">Create account</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register View -->
+    <div id="register-view" class="view hidden">
+        <div class="auth-container">
+            <button id="back-from-register" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Back to Marketplace
+            </button>
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Create Account</h2>
+                    <p>Join the Gwent Marketplace community</p>
+                </div>
+                <form id="register-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" placeholder="Choose a username" required>
+                        <div class="error-message" id="register-username-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" placeholder="Enter your email" required>
+                        <div class="error-message" id="register-email-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="register-password" placeholder="Create a password" required>
+                            <button type="button" id="toggle-register-password" class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="password-requirements" class="password-requirements hidden">
+                            <div class="requirement" data-requirement="length">
+                                <i class="fas fa-times"></i>
+                                At least 8 characters
+                            </div>
+                            <div class="requirement" data-requirement="uppercase">
+                                <i class="fas fa-times"></i>
+                                Contains uppercase letter
+                            </div>
+                            <div class="requirement" data-requirement="lowercase">
+                                <i class="fas fa-times"></i>
+                                Contains lowercase letter
+                            </div>
+                            <div class="requirement" data-requirement="number">
+                                <i class="fas fa-times"></i>
+                                Contains number
+                            </div>
+                        </div>
+                        <div class="error-message" id="register-password-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-confirm-password">Confirm Password</label>
+                        <div class="password-input">
+                            <input type="password" id="register-confirm-password" placeholder="Confirm your password" required>
+                            <button type="button" id="toggle-confirm-password" class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="error-message" id="register-confirm-password-error"></div>
+                    </div>
+                    <button type="submit" id="register-submit" class="btn btn-primary btn-full">
+                        Create Account
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    <p>Already have an account?
+                        <button id="switch-to-login" class="link-btn">Sign in</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="pagination">
+        <button id="prev-page" class="btn btn-outline">
+            <i class="fas fa-chevron-left"></i>
+            Previous
+        </button>
+        <div id="page-numbers" class="page-numbers">
+            <!-- Page numbers will be inserted here -->
+        </div>
+        <button id="next-page" class="btn btn-outline">
+            Next
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+</main>
+
+<!-- Pack Opening Modal -->
+<div id="pack-opening-modal" class="pack-opening-modal hidden">
+    <div class="pack-opening-content">
+        <!-- Unopened pack state -->
+        <div id="pack-unopened" class="pack-unopened">
+            <div class="pack-container">
+                <div class="pack-card" id="pack-to-open">
+                    <i class="fas fa-sparkles pack-sparkle"></i>
+                </div>
+            </div>
+            <h2 id="pack-name">Pack Name</h2>
+            <p>Click the pack to reveal your cards!</p>
+            <button id="open-pack-btn" class="btn btn-primary btn-large">
+                <i class="fas fa-sparkles"></i>
+                Open Pack
+            </button>
+        </div>
+
+        <!-- Opened pack state -->
+        <div id="pack-opened" class="pack-opened hidden">
+            <div class="opened-header">
+                <h2>Pack Opened!</h2>
+                <p>Here are your new cards</p>
+            </div>
+            <div id="opened-cards" class="opened-cards">
+                <!-- Opened cards will be inserted here -->
+            </div>
+            <button id="continue-shopping" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i>
+                Continue Shopping
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Loading...</p>
+    </div>
+</div>
+
+<script src="api.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

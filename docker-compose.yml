@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: gwent-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: gwent
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - gwent-mysql-data:/var/lib/mysql
+
+volumes:
+  gwent-mysql-data:
