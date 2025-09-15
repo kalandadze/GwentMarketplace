@@ -238,9 +238,45 @@ class CardsAPI {
     async getTemplates(filters = {}) {
         const params = new URLSearchParams();
 
-        // Load all cards without size limit for client-side pagination
+        // Add sortBy parameter
         const sortBy = filters.sortBy || 'name';
         params.append('sortBy', sortBy);
+
+        // Add size and page parameters
+        params.append('size', filters.size || '1000');
+        params.append('page', filters.page || '0');
+
+        // Add filter parameters if they exist
+        if (filters.rarities && filters.rarities.length > 0) {
+            filters.rarities.forEach(rarity => params.append('rarities', rarity));
+        }
+        
+        if (filters.faction && filters.faction !== 'All') {
+            // Map frontend faction names to backend enum values
+            const factionMap = {
+                'Northern Realms': 'NorthernRealms',
+                'Scoia\'tael': 'Scoiatel'
+            };
+            const backendFaction = factionMap[filters.faction] || filters.faction;
+            params.append('faction', backendFaction);
+        }
+        
+        if (filters.types && filters.types.length > 0) {
+            filters.types.forEach(type => params.append('types', type));
+        }
+        
+        if (filters.minPower !== undefined) {
+            params.append('minPower', filters.minPower);
+        }
+        
+        if (filters.maxPower !== undefined) {
+            params.append('maxPower', filters.maxPower);
+        }
+        
+        if (filters.search && filters.search.trim()) {
+            // Add search parameter if backend supports it
+            params.append('search', filters.search.trim());
+        }
 
         const queryString = params.toString();
         const endpoint = `${API_CONFIG.ENDPOINTS.GET_CARD_TEMPLATES}?${queryString}`;

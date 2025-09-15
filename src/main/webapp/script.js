@@ -49,6 +49,9 @@ class GwentMarketplace {
         document.getElementById('apply-filters').addEventListener('click', () => this.applyFilters());
         document.getElementById('clear-filters').addEventListener('click', () => this.clearFilters());
         
+        // Sort events
+        document.getElementById('sort-by').addEventListener('change', (e) => this.handleSortChange(e.target.value));
+        
         // Search functionality
         document.getElementById('search-input').addEventListener('input', (e) => this.handleSearch(e.target.value));
         
@@ -190,7 +193,8 @@ class GwentMarketplace {
 
     async loadTemplates() {
         try {
-            const response = await window.API.cards.getTemplates();
+            const filters = this.getCurrentFilters();
+            const response = await window.API.cards.getTemplates(filters);
             this.allTemplates = response;
             this.renderCurrentPage();
         } catch (error) {
@@ -199,18 +203,46 @@ class GwentMarketplace {
         }
     }
 
+    getCurrentFilters() {
+        const sortBy = document.getElementById('sort-by')?.value || 'name';
+        const faction = document.getElementById('faction-filter')?.value || 'All';
+        const minPower = parseInt(document.getElementById('power-min')?.value) || 0;
+        const maxPower = parseInt(document.getElementById('power-max')?.value) || 15;
+        
+        // Get selected rarities
+        const rarityCheckboxes = document.querySelectorAll('.rarity-checkbox:checked');
+        const rarities = Array.from(rarityCheckboxes).map(cb => cb.value);
+        
+        // Get selected types
+        const typeCheckboxes = document.querySelectorAll('.type-checkbox:checked');
+        const types = Array.from(typeCheckboxes).map(cb => cb.value);
+        
+        return {
+            sortBy,
+            faction: faction === 'All' ? undefined : faction,
+            rarities: rarities.length > 0 ? rarities : undefined,
+            types: types.length > 0 ? types : undefined,
+            minPower,
+            maxPower,
+            search: this.searchQuery || ''
+        };
+    }
+
+    async handleSortChange(sortBy) {
+        this.currentPage = 1; // Reset to first page
+        await this.loadTemplates();
+    }
+
     renderCurrentPage() {
         if (!this.allTemplates) return;
         
-        // Apply filters and search
-        const filteredTemplates = this.applyFiltersToTemplates(this.allTemplates);
-        
+        // No frontend filtering - backend handles everything
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
         const endIndex = startIndex + this.itemsPerPage;
-        const currentPageTemplates = filteredTemplates.slice(startIndex, endIndex);
+        const currentPageTemplates = this.allTemplates.slice(startIndex, endIndex);
         
         this.renderTemplates(currentPageTemplates);
-        this.updateTemplatesCount(filteredTemplates.length);
+        this.updateTemplatesCount(this.allTemplates.length);
     }
 
     applyFiltersToTemplates(templates) {
@@ -251,10 +283,10 @@ class GwentMarketplace {
         return filtered;
     }
 
-    handleSearch(query) {
+    async handleSearch(query) {
         this.searchQuery = query;
         this.currentPage = 1; // Reset to first page
-        this.renderCurrentPage();
+        await this.loadTemplates(); // Reload from backend with search
     }
 
     renderTemplates(templates) {
@@ -364,18 +396,17 @@ class GwentMarketplace {
         this.updatePowerRange();
     }
 
-    previousPage() {
-        if (this.currentPage > 1) {
-            this.currentPage--;
+    nextPage() {
+        const totalPages = Math.ceil(this.allTemplates.length / this.itemsPerPage);
+        if (this.currentPage < totalPages) {
+            this.currentPage++;
             this.renderCurrentPage();
         }
     }
 
-    nextPage() {
-        const filteredTemplates = this.applyFiltersToTemplates(this.allTemplates);
-        const totalPages = Math.ceil(filteredTemplates.length / this.itemsPerPage);
-        if (this.currentPage < totalPages) {
-            this.currentPage++;
+    previousPage() {
+        if (this.currentPage > 1) {
+            this.currentPage--;
             this.renderCurrentPage();
         }
     }
@@ -1083,23 +1114,10 @@ class GwentMarketplace {
         document.getElementById('power-max-value').textContent = maxSlider.value;
     }
 
-    applyFilters() {
-        // Get filter values
-        this.filters.faction = document.getElementById('faction-filter').value;
-        this.filters.minPower = parseInt(document.getElementById('power-min').value);
-        this.filters.maxPower = parseInt(document.getElementById('power-max').value);
-
-        // Get rarity checkboxes
-        this.filters.rarities = Array.from(document.querySelectorAll('.rarity-checkbox:checked'))
-            .map(cb => cb.value);
-
-        // Get type checkboxes
-        this.filters.types = Array.from(document.querySelectorAll('.type-checkbox:checked'))
-            .map(cb => cb.value);
-
-        this.currentPage = 1;
+    async applyFilters() {
         this.hideFilterPanel();
-        this.loadTemplates();
+        this.currentPage = 1; // Reset to first page when filters change
+        await this.loadTemplates(); // Reload from backend with new filters
     }
 
     clearFilters() {

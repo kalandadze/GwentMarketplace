@@ -5,6 +5,7 @@ import com.example.GwentMarketPlace.service.GwentService;
 import com.example.GwentMarketPlace.util.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,9 +22,16 @@ public class GwentController {
   }
 
   @GetMapping("/templates")
-  public ResponseEntity<?> getCardTemplates(@RequestParam(defaultValue = "1000") Integer size, @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "name") GwentService.sortBy sortBy) {
+  public ResponseEntity<?> getCardTemplates(@RequestParam(defaultValue = "1000") Integer size,
+                                            @RequestParam(defaultValue = "0") Integer page,
+                                            @RequestParam(defaultValue = "name") GwentService.sortBy sortBy,
+                                            @RequestParam(required = false) List<Rarity> rarities,
+                                            @RequestParam(required = false) Faction faction,
+                                            @RequestParam(required = false) List<Type> types,
+                                            @RequestParam(defaultValue = "0") Integer minPower,
+                                            @RequestParam(defaultValue = "15") Integer maxPower) {
     try {
-      return ResponseEntity.ok(gwentService.getUniqueCardsWithCountByPageAndSortBy(size, page, sortBy));
+      return ResponseEntity.ok(gwentService.getUniqueCardsWithCountByPageAndSortBy(size, page, sortBy,rarities,faction,types,minPower,maxPower));
     }catch (Exception e){
       log.error(e.getMessage());
       return ResponseEntity.badRequest().body(e.getMessage());
@@ -97,6 +105,30 @@ public class GwentController {
       log.error(e.getMessage());
       return ResponseEntity.badRequest().body(e.getMessage());
     }
+  }
+
+  public enum Rarity {
+    Common,
+    Rare,
+    Epic,
+    Legendary
+  }
+
+  public enum Type {
+    Unit,
+    Special,
+    Artifact,
+    Ability
+  }
+
+  public enum Faction {
+    NorthernRealms,
+    Nilfgaard,
+    Monsters,
+    Scoiatel,
+    Skellige
+
+
   }
 }
 

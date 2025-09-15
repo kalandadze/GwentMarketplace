@@ -166,23 +166,37 @@
     <!-- Templates View -->
     <div id="templates-view" class="view">
         <div class="page-header">
-            <div class="pagination">
-                <span id="templates-count">Loading...</span>
-                <div class="pagination-controls">
-                    <button id="prev-page" class="btn btn-outline" disabled>
-                        <i class="fas fa-chevron-left"></i>
-                        Previous
-                    </button>
-                    <span id="page-info">Page 1</span>
-                    <button id="next-page" class="btn btn-outline">
-                        Next
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+            <div class="page-controls">
+                <div class="sort-controls">
+                    <label for="sort-by">Sort by:</label>
+                    <select id="sort-by" class="sort-select">
+                        <option value="name">Name</option>
+                        <option value="faction">Faction</option>
+                        <option value="rarity">Rarity</option>
+                        <option value="power">Power</option>
+                        <option value="category">Category</option>
+                        <option value="set">Set</option>
+                        <option value="type">Type</option>
+                    </select>
+                </div>
+                <div class="pagination">
+                    <span id="templates-count">Loading...</span>
+                    <div class="pagination-controls">
+                        <button id="prev-page" class="btn btn-outline" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                            Previous
+                        </button>
+                        <span id="page-info">Page 1</span>
+                        <button id="next-page" class="btn btn-outline">
+                            Next
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div id="templates-grid" class="templates-grid">
-                <!-- Template cards will be inserted here -->
-            </div>
+        </div>
+        <div id="templates-grid" class="templates-grid">
+            <!-- Template cards will be inserted here -->
         </div>
     </div>
 
