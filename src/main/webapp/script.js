@@ -236,57 +236,37 @@ class GwentMarketplace {
     renderCurrentPage() {
         if (!this.allTemplates) return;
         
-        // No frontend filtering - backend handles everything
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = startIndex + this.itemsPerPage;
-        const currentPageTemplates = this.allTemplates.slice(startIndex, endIndex);
-        
-        this.renderTemplates(currentPageTemplates);
-        this.updateTemplatesCount(this.allTemplates.length);
-    }
-
-    applyFiltersToTemplates(templates) {
-        let filtered = [...templates];
+        // Apply search filter to currently loaded templates
+        let displayTemplates = [...this.allTemplates];
         
         // Search filter
         if (this.searchQuery && this.searchQuery.trim()) {
             const query = this.searchQuery.toLowerCase();
-            filtered = filtered.filter(template => 
-                template.card.name.toLowerCase().includes(query) ||
-                template.card.faction.toLowerCase().includes(query) ||
-                template.card.type.toLowerCase().includes(query)
-            );
+            displayTemplates = displayTemplates.filter(template => {
+                // Check if template has card property (backend format) or direct properties
+                const card = template.card || template;
+                return card.name.toLowerCase().includes(query) ||
+                    card.faction.toLowerCase().includes(query) ||
+                    card.type.toLowerCase().includes(query) ||
+                    card.rarity.toLowerCase().includes(query);
+            });
         }
         
-        // Faction filter
-        if (this.filters.faction && this.filters.faction !== 'all') {
-            filtered = filtered.filter(template => 
-                template.card.faction.toLowerCase() === this.filters.faction.toLowerCase()
-            );
-        }
+        // Pagination on filtered results
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = startIndex + this.itemsPerPage;
+        const currentPageTemplates = displayTemplates.slice(startIndex, endIndex);
         
-        // Rarity filter
-        if (this.filters.rarity && this.filters.rarity !== 'all') {
-            filtered = filtered.filter(template => 
-                template.card.rarity.toLowerCase() === this.filters.rarity.toLowerCase()
-            );
-        }
-        
-        // Power range filter
-        if (this.filters.powerMin !== undefined && this.filters.powerMax !== undefined) {
-            filtered = filtered.filter(template => 
-                template.card.power >= this.filters.powerMin && 
-                template.card.power <= this.filters.powerMax
-            );
-        }
-        
-        return filtered;
+        this.renderTemplates(currentPageTemplates);
+        this.updateTemplatesCount(displayTemplates.length);
+        this.updatePaginationControls(displayTemplates.length);
     }
 
-    async handleSearch(query) {
+
+    handleSearch(query) {
         this.searchQuery = query;
-        this.currentPage = 1; // Reset to first page
-        await this.loadTemplates(); // Reload from backend with search
+        this.currentPage = 1;
+        this.renderCurrentPage();
     }
 
     renderTemplates(templates) {

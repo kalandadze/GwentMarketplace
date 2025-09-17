@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 @Component
 public class UserValidator {
 
-  private static final Pattern USER_USERNAME = Pattern.compile("^[a-zA-Z]{2,50}$");
+  private static final Pattern USER_USERNAME = Pattern.compile("^[a-zA-Z0-9]{2,50}$");
 
   public boolean validateUserUsername(String username) {
     return USER_USERNAME.matcher(username).matches();
